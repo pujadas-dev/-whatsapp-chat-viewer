@@ -1,7 +1,14 @@
 const chatFile = document.getElementById("chatFile");
 const chatContainer = document.getElementById("chatContainer");
 
+const nameSelection = document.getElementById("nameSelection");
+const myNameSelect = document.getElementById("myName");
+const openChatButton = document.getElementById("openChat");
+
+let chatLines = [];
+
 chatFile.addEventListener("change", function () {
+
     const file = this.files[0];
 
     if (!file) return;
@@ -9,28 +16,65 @@ chatFile.addEventListener("change", function () {
     const reader = new FileReader();
 
     reader.onload = function (event) {
+
         const chatText = event.target.result;
 
-        displayChat(chatText);
+        chatLines = chatText.split(/\r?\n/);
+
+        findSenders(chatLines);
     };
 
     reader.readAsText(file);
 });
 
 
-function displayChat(chatText) {
+function findSenders(lines) {
 
-    chatContainer.innerHTML = "";
-
-    const lines = chatText.split(/\r?\n/);
+    const senders = new Set();
 
     lines.forEach(line => {
 
-        // WhatsApp chat format:
-        // 20/08/2026, 10:30 - Name: Message
+        const match = line.match(
+            /^\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}(?:\u202f?[APap][Mm])?\s*[-–]\s*(.*?):\s/
+        );
+
+        if (match) {
+            senders.add(match[1]);
+        }
+    });
+
+    myNameSelect.innerHTML = "";
+
+    senders.forEach(sender => {
+
+        const option = document.createElement("option");
+
+        option.value = sender;
+        option.textContent = sender;
+
+        myNameSelect.appendChild(option);
+    });
+
+    nameSelection.style.display = "block";
+}
+
+
+openChatButton.addEventListener("click", function () {
+
+    const myName = myNameSelect.value;
+
+    displayChat(chatLines, myName);
+});
+
+
+function displayChat(lines, myName) {
+
+    chatContainer.innerHTML = "";
+
+    lines.forEach(line => {
 
         const match = line.match(
-            /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[APap][Mm])?)\s*[-–]\s*(.*?):\s([\s\S]*)$/
+            /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2}(?:\u202f?[APap][Mm])?)\s*[-–]\s*(.*?):\s(.*)$/
         );
 
         if (!match) return;
@@ -41,7 +85,11 @@ function displayChat(chatText) {
         const message = match[4];
 
         const messageDiv = document.createElement("div");
-        messageDiv.className = "message";
+
+        messageDiv.className =
+            sender === myName
+                ? "message sent"
+                : "message received";
 
         messageDiv.innerHTML = `
             <div class="sender">${sender}</div>
