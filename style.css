@@ -56,3 +56,23 @@ p {
     color: #777;
     margin-top: 3px;
 }
+#nameSelection {
+    text-align: center;
+    margin: 15px;
+}
+
+#nameSelection select,
+#nameSelection button {
+    padding: 8px;
+    margin: 5px;
+}
+
+.message.received {
+    margin-right: auto;
+    background: white;
+}
+
+.message.sent {
+    margin-left: auto;
+    background: #dcf8c6;
+}
